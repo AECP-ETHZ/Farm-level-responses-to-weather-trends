@@ -1,0 +1,279 @@
+/* 1) DEGREE DAYS */
+
+/* t-boundaries for Growing Degree Days > 10°C */
+
+
+%macro Temperature_Hours (start=, end=);
+
+%do i=&start. %to &end.; 
+   data work.temperature&i.;
+      set work.temperature&i.;
+
+   array Tmin{*} Tmin1--Tmin365; 
+   array Tmax{*} Tmax1--Tmax365;
+   array t_boundary{*} t_bound10_1--t_bound10_365;
+
+
+ 
+	do j = 1 to 365 ;
+
+
+
+if	((tmin(j) < 10) and (tmax(j) > 10))
+then  t_boundary(j) =  arcos((2 * 10 - tmax(j) - tmin(j))/(tmax(j) - tmin(j))) ;
+
+
+else if (tmin(j) > 10)
+then t_boundary(j) = '.' ;
+
+
+else if (tmax(j) < 10)
+then t_boundary(j) = '.' ;
+
+end;
+   
+
+run;
+
+
+%end;   
+%mend Temperature_Hours ;
+%Temperature_Hours (start=&YEAR_S, end=&YEAR_E);
+
+
+-------------------------------------------------------------------------------------------
+
+/* calculation of Cooling Degree Days > 10°C*/
+
+
+
+%macro Temperature_10 (start=, end=);
+
+%do i=&start. %to &end.; 
+   data work.temperature&i.;
+      set work.temperature&i.;
+
+   array Tmin{*} Tmin1-Tmin365; 
+   array Tmax{*} Tmax1-Tmax365;
+    array t_bound{*} t_bound10_1 - t_bound10_365;
+
+ggd_MarAug_10 = 0 ;
+
+
+ 
+	do j = 1 to 365 ;
+
+
+
+		  if ((tmax(j) <= 10) and (j >= 60) and (j <=  243)) 
+	then ggd_MarAug_10 = ggd_MarAug_10 + 0;
+
+
+	else if ((tmin(j) >= 10) and (j >= 60) and (j <=  243)) 
+		then ggd_MarAug_10  = ggd_MarAug_10 +  ((0.5 *(tmax(j)+tmin(j))) - 10) ; 
+
+
+    else if ((tmin(j) < 10) and (tmax(j) > 10) and (j >= 60) and (j <=  243) and t_bound(j) ne '.') 	
+then ggd_MarAug_10 = ggd_MarAug_10 + (t_bound(j)/ pi ) * (((tmax(j) + tmin(j))/2) - 10) 
++ ((tmax(j) - tmin(j))/(2*pi))*sin(t_bound(j));
+
+
+
+
+end;
+      
+
+run;
+
+
+%end;   
+%mend Temperature_10 ;
+%Temperature_10 (start=&YEAR_S, end=&YEAR_E);
+
+
+
+----------------------------------------------------------------------------------------------------------
+
+
+/* t-boundaries for Growing Degree Days > 30°C */
+
+
+%macro Temperature_Hours (start=, end=);
+
+%do i=&start. %to &end.; 
+   data work.temperature&i.;
+      set work.temperature&i.;
+
+   array Tmin{*} Tmin1--Tmin365; 
+   array Tmax{*} Tmax1--Tmax365;
+   array t_boundary{*} t_bound30_1--t_bound30_365;
+
+
+ 
+	do j = 1 to 365 ;
+
+
+
+if	((tmin(j) < 30) and (tmax(j) > 30))
+then  t_boundary(j) =  arcos((2 * 30 - tmax(j) - tmin(j))/(tmax(j) - tmin(j))) ;
+
+
+else if (tmin(j) > 30)
+then t_boundary(j) = '.' ;
+
+
+else if (tmax(j) < 30)
+then t_boundary(j) = '.' ;
+
+end;
+   
+
+run;
+
+
+%end;   
+%mend Temperature_Hours ;
+%Temperature_Hours (start=&YEAR_S, end=&YEAR_E);
+
+
+------------------------------------------------------------------------------------------
+
+/* calculation of Cooling Degree Days > 30°C*/
+
+
+
+%macro Temperature_30 (start=, end=);
+
+%do i=&start. %to &end.; /* Beginn DO-Schleife Zeitreihe */
+   data work.temperature&i.;
+      set work.temperature&i.;
+
+   array Tmin{*} Tmin1-Tmin365; 
+   array Tmax{*} Tmax1-Tmax365;
+    array t_bound{*} t_bound30_1 - t_bound30_365;
+
+ggd_MarAug_30 = 0 ;
+
+
+ 
+	do j = 1 to 365 ;
+
+
+
+		  if ((tmax(j) <= 30) and (j >= 60) and (j <=  243)) 
+	then ggd_MarAug_30 = ggd_MarAug_30 + 0;
+
+
+	else if ((tmin(j) >= 30) and (j >= 60) and (j <=  243)) 
+		then ggd_MarAug_30  = ggd_MarAug_30 +  ((0.5 *(tmax(j)+tmin(j))) - 30) ; 
+
+
+    else if ((tmin(j) < 30) and (tmax(j) > 30) and (j >= 60) and (j <=  243) and t_bound(j) ne '.') 	
+then ggd_MarAug_30 = ggd_MarAug_30 + (t_bound(j)/ pi ) * (((tmax(j) + tmin(j))/2) - 30) 
++ ((tmax(j) - tmin(j))/(2*pi))*sin(t_bound(j));
+
+
+
+
+end;
+      
+
+run;
+
+
+%end;   /* Ende DO-Schleife Zeitreihe */
+%mend Temperature_30 ;
+%Temperature_30 (start=&YEAR_S, end=&YEAR_E);
+
+
+
+--------------------------------------------------------------------------------------------------------
+
+
+
+
+/* Calculation of final variable */
+
+
+%macro Temperature_calculation (start=, end=);
+
+%do i=&start. %to &end.; 
+   data work.temperature&i.;
+      set work.temperature&i.;
+
+
+ggd_MarAug_1030 = ggd_MarAug_10 - ggd_MarAug_30 ;
+      
+
+run;
+
+
+%end;   
+%mend Temperature_calculation ;
+%Temperature_calculation (start=&YEAR_S, end=&YEAR_E);
+
+
+/* 2) PRECIPITATION AND DRY DAYS */
+
+
+
+
+/*Calculation of overall Precipitation (prec) between March 1st and August 31th */
+
+
+%macro precipitation (start=, end=);
+
+%do i=&start. %to &end.; 
+   data work.rain_new&i.;
+      set work.rain_new&i.;
+
+	     
+    array rain{*} rain1-rain365;
+
+
+		prec_MarAug = 0 ;
+ 	      do j = 1 to 365 ;
+          if ((j >= 60) and (j <=  243)) 
+	      then prec_MarAug = prec_MarAug + rain(j) ;
+        end;
+
+
+  run;
+
+%end;   
+%mend precipitation ;
+%precipitation(start=&YEAR_S, end=&YEAR_E);
+
+
+---------------------------------------------------------------------------------------------------
+
+
+/* Dry days (dd) between March 1st and August 31th with precipitation <1 mm*/
+
+
+%macro drydays (start=, end=);
+
+%do i=&start. %to &end.; 
+   data work.rain_new&i.;
+      set work.rain_new&i.;
+
+	     
+    array rain{*} rain1-rain365;
+
+
+		dd_MarAug = 0 ;
+ 	      do j = 1 to 365 ;
+          if ((j >= 60) and (j <=  243) and rain(j) <1) 
+	      then dd_MarAug = dd_MarAug + 1 ;
+        end;
+
+	
+
+  run;
+
+%end;   
+%mend drydays ;
+%drydays(start=&YEAR_S, end=&YEAR_E);
+
+
+
